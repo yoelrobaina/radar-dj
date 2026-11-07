@@ -65,7 +65,7 @@ form.addEventListener("submit", async (event) => {
     });
     if (!response.ok) throw new Error("HTTP " + response.status);
     document.getElementById("doneChannel").textContent =
-      delivery === "email" ? "correo" : delivery === "ambos" ? "WhatsApp y correo" : "WhatsApp";
+      delivery === "email" ? "correo" : delivery === "ambos" ? "el grupo de WhatsApp y correo" : "el grupo de WhatsApp";
     form.hidden = true;
     doneBox.hidden = false;
     doneBox.scrollIntoView({ behavior: "smooth", block: "center" });

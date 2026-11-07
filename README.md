@@ -1,9 +1,9 @@
 # Radar DJ
 
 Landing + registro para DJs de Cuba. El DJ dice qué géneros y cantantes quiere
-que se vigilen; cuando sale un tema nuevo, le llega el link a su WhatsApp o
-correo. Primera semana gratis, después 200 CUP al mes (150 CUP si se apunta
-el grupo entero). Pago por Transfermóvil.
+que se vigilen; cuando sale un tema nuevo, le llega el link a su correo o en
+el grupo de WhatsApp. Primera semana gratis, después 250 CUP al mes (200 CUP
+si se apunta el grupo entero). Pago por Transfermóvil.
 
 ## Sitio
 
@@ -37,6 +37,9 @@ los registros desde el navegador. Los valores reales van en `config.js`
 ## Entrega de links
 
 El formulario guarda por cada DJ su WhatsApp o correo y cómo quiere recibir
-los links. El radar diario (revisión de estrenos en Spotify, YouTube y
-Beatport) todavía no está automatizado: Chichi revisa y manda los links a cada
-DJ por el canal que eligió.
+los links. Chichi NO puede mandar mensajes de WhatsApp directamente: no hay
+forma gratuita de escribirle al WhatsApp de cada DJ ni de publicar en el
+grupo. La entrega real es así: por correo, Chichi manda el link directo al DJ;
+por WhatsApp, Chichi prepara la lista diaria y Yoel la comparte en el grupo
+de DJs. El radar diario (revisión de estrenos en Spotify, YouTube y Beatport)
+todavía no está automatizado.
