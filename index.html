@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radar DJ — La música nueva te llega sola</title>
+<meta name="description" content="Radar DJ vigila todos los días el reparto, el reguetón y el afrohouse. Cuando sale un tema nuevo, te llega el link directo a tu WhatsApp. Primera semana gratis.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="top">
+  <span class="brand">RADAR&nbsp;DJ</span>
+  <span class="live"><span class="dot"></span>vigilando estrenos</span>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>Nunca llegues<br>tarde a un tema.</h1>
+    <p class="lede">Te piden un tema en plena fiesta y no lo tienes porque salió ayer y no te enteraste. Radar DJ revisa todos los días lo nuevo de tus géneros y tus cantantes, y en cuanto sale algo, te cae el link directo en tu WhatsApp.</p>
+    <p class="lede small">Tú solo pinchas. Nosotros te mantenemos al día.</p>
+    <a class="cta" href="#registro">Quiero que me avisen</a>
+  </section>
+
+  <div class="ticker" aria-hidden="true">
+    <span>REPARTO • REGUETÓN • AFROHOUSE • DEMBOW • SALSA • BACHATA • GUARACHA • HOUSE • TECHNO • </span>
+    <span>REPARTO • REGUETÓN • AFROHOUSE • DEMBOW • SALSA • BACHATA • GUARACHA • HOUSE • TECHNO • </span>
+  </div>
+
+  <section class="how">
+    <h2>Así funciona</h2>
+    <ol>
+      <li><strong>Te apuntas abajo.</strong> Dices qué géneros quieres y qué cantantes hay que vigilar.</li>
+      <li><strong>Nosotros buscamos.</strong> Todos los días revisamos Spotify, YouTube, Beatport y los canales de los artistas.</li>
+      <li><strong>Te llega el link.</strong> Tema nuevo de tu lista, link directo a tu WhatsApp o tu correo. Sin spam, solo lo nuevo.</li>
+    </ol>
+  </section>
+
+  <section class="price">
+    <h2>Precio</h2>
+    <p class="amount">200 <span>CUP / mes</span></p>
+    <p>Primera semana gratis, pa' que lo pruebes sin pagar nada. Si se apunta el grupo entero, <strong>150 CUP</strong> por cabeza. Pago por Transfermóvil.</p>
+  </section>
+
+  <section class="form-wrap" id="registro">
+    <h2>Apúntate</h2>
+    <p class="form-intro">Llena esto y dime qué quieres que vigile. La primera semana es gratis.</p>
+
+    <form id="signup" novalidate>
+      <label>
+        Nombre artístico
+        <input type="text" name="name" required maxlength="80" placeholder="Ej: DJ Yoel" autocomplete="nickname">
+      </label>
+
+      <label>
+        WhatsApp
+        <input type="tel" name="whatsapp" required maxlength="20" placeholder="Ej: +53 5 123 4567" autocomplete="tel">
+      </label>
+
+      <label>
+        Correo <span class="opt">(opcional)</span>
+        <input type="email" name="email" maxlength="120" placeholder="tu@correo.com" autocomplete="email">
+      </label>
+
+      <fieldset>
+        <legend>Qué géneros quieres que vigile <span class="opt">(marca al menos uno)</span></legend>
+        <div class="chips" id="genres">
+          <button type="button" data-genre="Reparto">Reparto</button>
+          <button type="button" data-genre="Reguetón">Reguetón</button>
+          <button type="button" data-genre="Afrohouse">Afrohouse</button>
+          <button type="button" data-genre="Dembow">Dembow</button>
+          <button type="button" data-genre="Salsa">Salsa</button>
+          <button type="button" data-genre="Bachata">Bachata</button>
+          <button type="button" data-genre="Merengue">Merengue</button>
+          <button type="button" data-genre="Guaracha">Guaracha</button>
+          <button type="button" data-genre="House">House</button>
+          <button type="button" data-genre="Techno">Techno</button>
+          <button type="button" data-genre="Hip Hop">Hip Hop</button>
+          <button type="button" data-genre="Otro">Otro</button>
+        </div>
+      </fieldset>
+
+      <label>
+        Cantantes que hay que vigilar <span class="opt">(uno por línea)</span>
+        <textarea name="artists" rows="4" maxlength="600" placeholder="Bebeshito&#10;Chocolate MC&#10;El Taiger"></textarea>
+      </label>
+
+      <fieldset>
+        <legend>Cómo quieres recibir los links</legend>
+        <div class="radios">
+          <label class="radio"><input type="radio" name="delivery" value="whatsapp" checked> WhatsApp</label>
+          <label class="radio"><input type="radio" name="delivery" value="email"> Correo</label>
+          <label class="radio"><input type="radio" name="delivery" value="ambos"> Los dos</label>
+        </div>
+      </fieldset>
+
+      <p class="error" id="error" hidden></p>
+      <button class="submit" type="submit" id="submitBtn">Apuntarme — primera semana gratis</button>
+      <p class="fine">Sin ataduras. Cancela cuando quieras. Tus datos solo se usan pa' mandarte los links.</p>
+    </form>
+
+    <div class="done" id="done" hidden>
+      <p class="done-title">Ya estás dentro. 🎧</p>
+      <p>La primera semana es gratis. En cuanto salga algo nuevo de tu lista, te cae el link por <span id="doneChannel">WhatsApp</span>.</p>
+      <p>Si quieres agregar más cantantes, vuelve y apúntate de nuevo con los mismos datos.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>Radar DJ — hecho por un DJ, pa' los DJs. La Habana, Cuba.</p>
+</footer>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
