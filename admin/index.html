@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Radar DJ — Panel admin</title>
+<meta name="description" content="Panel del administrador de Radar DJ: usuarios, suscripciones y renovaciones.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+<header class="top">
+  <span class="brand">RADAR&nbsp;DJ · ADMIN</span>
+  <button class="logout" id="logoutBtn" hidden>Salir</button>
+</header>
+
+<main>
+  <!-- Login -->
+  <section class="login" id="loginView">
+    <h1>Panel admin</h1>
+    <p class="lede">Solo el administrador entra aquí. Te mando un código a tu correo y con eso entras, sin contraseña que olvidar.</p>
+    <form id="loginForm" novalidate>
+      <label>
+        Tu correo
+        <input type="email" id="loginEmail" required maxlength="120" placeholder="tu@correo.com" autocomplete="email">
+      </label>
+      <p class="error" id="loginError" hidden></p>
+      <button class="submit" type="submit" id="sendCodeBtn">Mandar código</button>
+    </form>
+    <form id="codeForm" novalidate hidden>
+      <p class="sent">Te mandé un código de 6 dígitos a <strong id="sentTo"></strong>. Revísalo y ponlo aquí.</p>
+      <label>
+        Código
+        <input type="text" id="codeInput" required maxlength="6" inputmode="numeric" placeholder="123456" autocomplete="one-time-code">
+      </label>
+      <p class="error" id="codeError" hidden></p>
+      <button class="submit" type="submit" id="verifyBtn">Entrar</button>
+      <button class="linklike" type="button" id="resendBtn">Mandar el código de nuevo</button>
+    </form>
+  </section>
+
+  <!-- Dashboard -->
+  <section class="dash" id="dashView" hidden>
+    <div class="dash-head">
+      <h1>Usuarios</h1>
+      <button class="refresh" id="refreshBtn" type="button">Actualizar</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><span class="num" id="statTotal">–</span><span class="lbl">Usuarios</span></div>
+      <div class="stat"><span class="num" id="statFree">–</span><span class="lbl">Gratis</span></div>
+      <div class="stat"><span class="num" id="statPaid">–</span><span class="lbl">Pagando</span></div>
+      <div class="stat warn"><span class="num" id="statExpiring">–</span><span class="lbl">Por vencer</span></div>
+    </div>
+
+    <input class="search" id="searchInput" type="search" placeholder="Buscar por correo o teléfono…" aria-label="Buscar por correo o teléfono">
+
+    <p class="error" id="dashError" hidden></p>
+    <p class="empty" id="emptyMsg" hidden>Nadie por aquí todavía.</p>
+
+    <div class="users" id="usersList"></div>
+  </section>
+</main>
+
+<footer>
+  <p>Radar DJ — panel admin. Cienfuegos, Cuba.</p>
+</footer>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
