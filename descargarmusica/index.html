@@ -303,26 +303,18 @@
   }
 
   // Busca el video exacto en YouTube para enlazar directo al tema, no a la búsqueda.
-  // La página no puede leer yewtu.be directo (el navegador lo bloquea), así que
-  // lo intenta también por dos puentes públicos; si ninguno responde, vuelve a la búsqueda.
+  // Lo resuelve el servidor (api/youtube), porque desde el navegador los servicios
+  // de video bloquean la petición. Si el servidor no da video, vuelve a la búsqueda.
   async function youtubeDirect(title, artist) {
-    const q = encodeURIComponent((title + " " + artist).trim());
-    const searchUrl = "https://www.youtube.com/results?search_query=" + q;
-    const invUrl = "https://yewtu.be/api/v1/search?q=" + q + "&type=video";
-    const attempts = [
-      invUrl,
-      "https://api.allorigins.win/raw?url=" + encodeURIComponent(invUrl),
-      "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(invUrl),
-    ];
-    for (const url of attempts) {
-      try {
-        const r = await fetch(url);
-        if (!r.ok) continue;
-        const d = await r.json();
-        const hit = (Array.isArray(d) ? d : []).find((x) => x && x.type === "video" && x.videoId);
-        if (hit) return "https://www.youtube.com/watch?v=" + hit.videoId;
-      } catch (e) { /* siguiente intento */ }
-    }
+    const q = (title + " " + artist).trim();
+    const searchUrl = "https://www.youtube.com/results?search_query=" + encodeURIComponent(q);
+    try {
+      const r = await fetch("/api/youtube?q=" + encodeURIComponent(q), { signal: AbortSignal.timeout(20000) });
+      if (!r.ok) return searchUrl;
+      const d = await r.json();
+      if (d && d.videoId) return "https://www.youtube.com/watch?v=" + d.videoId;
+      if (d && d.url) return d.url;
+    } catch (e) { /* cae a la búsqueda */ }
     return searchUrl;
   }
 
