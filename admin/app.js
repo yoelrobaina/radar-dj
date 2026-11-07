@@ -1,18 +1,32 @@
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+
 const loginView = document.getElementById("loginView");
+
 const dashView = document.getElementById("dashView");
+
 const logoutBtn = document.getElementById("logoutBtn");
+
 const loginForm = document.getElementById("loginForm");
-const sentView = document.getElementById("sentView");
+
 const loginError = document.getElementById("loginError");
+
 const dashError = document.getElementById("dashError");
+
 const usersList = document.getElementById("usersList");
+
 const emptyMsg = document.getElementById("emptyMsg");
+
 const searchInput = document.getElementById("searchInput");
 
+const renewalsList = document.getElementById("renewalsList");
+
+const renewalsEmpty = document.getElementById("renewalsEmpty");
+
 let allUsers = [];
-let loginEmail = "";
+
+let allRenewals = [];
+
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -39,6 +53,7 @@ function statusOf(user) {
     if (expires - now <= 3 * DAY) return { key: "expiring", label: "Por vencer" };
     return { key: "paid", label: "Pagando" };
   }
+
   if (expires && expires <= now) return { key: "expired", label: "Gratis vencido" };
   return { key: "free", label: "Gratis" };
 }
@@ -48,6 +63,7 @@ function showDash() {
   dashView.hidden = false;
   logoutBtn.hidden = false;
   loadUsers();
+  loadRenewals();
 }
 
 function showLogin() {
@@ -55,48 +71,34 @@ function showLogin() {
   dashView.hidden = true;
   logoutBtn.hidden = true;
   loginForm.hidden = false;
-  sentView.hidden = true;
 }
 
-// Login by magic link: Supabase sends a sign-in link to the admin email.
-// The link points back to this panel and the session is detected on load,
-// so there is no code to type. The free plan does not allow editing the
-// email template to include a numeric code.
-async function sendCode(email) {
-  hideError(loginError);
-  const { error } = await client.auth.signInWithOtp({
-    email,
-    options: { shouldCreateUser: false, emailRedirectTo: "https://radardj.vercel.app/admin/" },
-  });
-  if (error) throw error;
-  loginEmail = email;
-  document.getElementById("sentTo").textContent = email;
-  loginForm.hidden = true;
-  sentView.hidden = false;
-}
-
+// Login con contraseña: sin enlaces por correo.
 loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+  hideError(loginError);
   const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+  const password = document.getElementById("loginPassword").value;
+
   if (!email) return showError(loginError, "Pon tu correo.");
-  const btn = document.getElementById("sendCodeBtn");
+  if (!password) return showError(loginError, "Pon tu contraseña.");
+
+  const btn = document.getElementById("loginBtn");
   btn.disabled = true;
-  btn.textContent = "Mandando…";
+  btn.textContent = "Entrando…";
   try {
-    await sendCode(email);
+    const { data, error } = await client.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    if (!data.session || data.session.user.email.toLowerCase() !== ADMIN_EMAIL) {
+      await client.auth.signOut();
+      return showError(loginError, "Esa cuenta no es la del administrador.");
+    }
+    showDash();
   } catch (err) {
-    showError(loginError, "No se pudo mandar el enlace. Revisa el correo e inténtalo de nuevo.");
+    showError(loginError, "Correo o contraseña incorrectos. Inténtalo de nuevo.");
   } finally {
     btn.disabled = false;
-    btn.textContent = "Mandar enlace";
-  }
-});
-
-document.getElementById("resendBtn").addEventListener("click", async () => {
-  try {
-    await sendCode(loginEmail);
-  } catch (err) {
-    showError(loginError, "No se pudo mandar el enlace de nuevo.");
+    btn.textContent = "Entrar";
   }
 });
 
@@ -111,10 +113,12 @@ async function loadUsers() {
     .from("radar_dj_signups")
     .select("*")
     .order("created_at", { ascending: false });
+
   if (error) {
     showError(dashError, "No se pudo cargar la lista. Inténtalo de nuevo.");
     return;
   }
+
   allUsers = data || [];
   renderUsers();
 }
@@ -130,37 +134,45 @@ function renderUsers() {
   const free = allUsers.filter((u) => statusOf(u).key === "free").length;
   const paid = allUsers.filter((u) => statusOf(u).key === "paid").length;
   const expiring = allUsers.filter((u) => ["expiring", "expired"].includes(statusOf(u).key)).length;
+
   document.getElementById("statTotal").textContent = total;
   document.getElementById("statFree").textContent = free;
   document.getElementById("statPaid").textContent = paid;
   document.getElementById("statExpiring").textContent = expiring;
 
   emptyMsg.hidden = filtered.length !== 0;
+
   usersList.innerHTML = "";
+
   for (const user of filtered) {
     const status = statusOf(user);
+
     const card = document.createElement("article");
     card.className = "user";
+
     card.innerHTML =
       '<div class="user-head">' +
       "<h2 class='user-name'></h2>" +
       `<span class="badge ${status.key}">${status.label}</span>` +
       "</div>" +
-      `<p class="user-meta">Correo: <strong></strong><br>WhatsApp: <strong></strong><br>` +
+      `<p class="user-meta">Correo: <strong></strong><br>Teléfono: <strong></strong><br>` +
       `Géneros: <strong></strong><br>Artistas: <strong></strong><br>` +
-      `Recibe por: <strong></strong> · Apuntado: <strong></strong> · Vence: <strong></strong></p>` +
+      `Apuntado: <strong></strong> · Vence: <strong></strong></p>` +
       '<div class="user-actions"></div>';
+
     card.querySelector(".user-name").textContent = user.name || "Sin nombre";
+
     const strongs = card.querySelectorAll(".user-meta strong");
+
     strongs[0].textContent = user.email || "—";
     strongs[1].textContent = user.whatsapp || "—";
     strongs[2].textContent = (user.genres || []).join(", ") || "—";
     strongs[3].textContent = user.artists || "—";
-    strongs[4].textContent = user.delivery || "whatsapp";
-    strongs[5].textContent = fmtDate(user.created_at);
-    strongs[6].textContent = fmtDate(user.expires_at);
+    strongs[4].textContent = fmtDate(user.created_at);
+    strongs[5].textContent = fmtDate(user.expires_at);
 
     const actions = card.querySelector(".user-actions");
+
     if (user.plan !== "paid") {
       const activate = document.createElement("button");
       activate.className = "btn activate";
@@ -176,6 +188,7 @@ function renderUsers() {
       renew.addEventListener("click", () => setSubscription(user, "renew", renew));
       actions.appendChild(renew);
     }
+
     const del = document.createElement("button");
     del.className = "btn delete";
     del.type = "button";
@@ -189,17 +202,21 @@ function renderUsers() {
 
 async function setSubscription(user, mode, btn) {
   btn.disabled = true;
+
   const base = mode === "renew" && user.expires_at ? Math.max(new Date(user.expires_at).getTime(), Date.now()) : Date.now();
   const expiresAt = new Date(base + 30 * DAY).toISOString();
+
   const { error } = await client
     .from("radar_dj_signups")
     .update({ plan: "paid", expires_at: expiresAt })
     .eq("id", user.id);
+
   if (error) {
     showError(dashError, "No se pudo guardar el cambio.");
     btn.disabled = false;
     return;
   }
+
   loadUsers();
 }
 
@@ -213,29 +230,133 @@ async function deleteUser(user, btn) {
     }, 5000);
     return;
   }
+
   btn.disabled = true;
+
   const { error } = await client.from("radar_dj_signups").delete().eq("id", user.id);
+
   if (error) {
     showError(dashError, "No se pudo eliminar.");
     btn.disabled = false;
     return;
   }
+
   loadUsers();
 }
 
+// Renovaciones: avisos de DJs que ya pagaron por Transfermóvil.
+async function loadRenewals() {
+  const { data, error } = await client
+    .from("radar_dj_renewals")
+    .select("*")
+    .eq("status", "pending")
+    .order("created_at", { ascending: false });
+
+  if (error) return;
+
+  allRenewals = data || [];
+  renderRenewals();
+}
+
+function renderRenewals() {
+  renewalsEmpty.hidden = allRenewals.length !== 0;
+  renewalsList.innerHTML = "";
+
+  for (const renewal of allRenewals) {
+    const card = document.createElement("article");
+    card.className = "user";
+
+    card.innerHTML =
+      '<div class="user-head">' +
+      "<h2 class='user-name'></h2>" +
+      "</div>" +
+      `<p class="user-meta">Avisó: <strong></strong></p>` +
+      '<div class="user-actions"></div>';
+
+    card.querySelector(".user-name").textContent = renewal.email || "Sin correo";
+    card.querySelector(".user-meta strong").textContent = fmtDate(renewal.created_at);
+
+    const actions = card.querySelector(".user-actions");
+
+    const activate = document.createElement("button");
+    activate.className = "btn activate";
+    activate.type = "button";
+    activate.textContent = "Activar 30 días";
+    activate.addEventListener("click", () => activateRenewal(renewal, activate));
+    actions.appendChild(activate);
+
+    const discard = document.createElement("button");
+    discard.className = "btn delete";
+    discard.type = "button";
+    discard.textContent = "Descartar";
+    discard.addEventListener("click", () => resolveRenewal(renewal, discard));
+    actions.appendChild(discard);
+
+    renewalsList.appendChild(card);
+  }
+}
+
+async function activateRenewal(renewal, btn) {
+  btn.disabled = true;
+  const user = allUsers.find((u) => (u.email || "").toLowerCase() === (renewal.email || "").toLowerCase());
+
+  if (!user) {
+    showError(dashError, "Ese correo no tiene registro en Radar DJ.");
+    btn.disabled = false;
+    return;
+  }
+
+  const base = user.expires_at ? Math.max(new Date(user.expires_at).getTime(), Date.now()) : Date.now();
+  const expiresAt = new Date(base + 30 * DAY).toISOString();
+
+  const { error } = await client
+    .from("radar_dj_signups")
+    .update({ plan: "paid", expires_at: expiresAt })
+    .eq("id", user.id);
+
+  if (error) {
+    showError(dashError, "No se pudo activar la renovación.");
+    btn.disabled = false;
+    return;
+  }
+
+  await resolveRenewal(renewal, btn, true);
+}
+
+async function resolveRenewal(renewal, btn, silent) {
+  if (!silent) btn.disabled = true;
+
+  const { error } = await client
+    .from("radar_dj_renewals")
+    .update({ status: "done" })
+    .eq("id", renewal.id);
+
+  if (error && !silent) {
+    showError(dashError, "No se pudo guardar el cambio.");
+    btn.disabled = false;
+    return;
+  }
+
+  loadUsers();
+  loadRenewals();
+}
+
 searchInput.addEventListener("input", renderUsers);
-document.getElementById("refreshBtn").addEventListener("click", loadUsers);
+document.getElementById("refreshBtn").addEventListener("click", () => {
+  loadUsers();
+  loadRenewals();
+});
 
 (async function init() {
   client.auth.onAuthStateChange((event, session) => {
     if (event === "SIGNED_IN" && session && session.user && session.user.email.toLowerCase() === ADMIN_EMAIL) {
-      loginEmail = session.user.email;
       showDash();
     }
   });
+
   const { data } = await client.auth.getSession();
+
   if (data.session && data.session.user && data.session.user.email.toLowerCase() === ADMIN_EMAIL) {
-    loginEmail = data.session.user.email;
     showDash();
   } else {
     showLogin();

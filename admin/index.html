@@ -9,6 +9,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<style>
+  input[type="password"] { width: 100%; margin-top: 8px; background: #0d0d0f; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); font: inherit; padding: 12px 14px; }
+</style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
@@ -21,19 +24,19 @@
   <!-- Login -->
   <section class="login" id="loginView">
     <h1>Panel admin</h1>
-    <p class="lede">Solo el administrador entra aquí. Te mando un enlace a tu correo, lo abres y entras directo, sin contraseña que olvidar.</p>
+    <p class="lede">Solo el administrador entra aquí. Entra con tu correo y tu contraseña, sin enlaces.</p>
     <form id="loginForm" novalidate>
       <label>
         Tu correo
         <input type="email" id="loginEmail" required maxlength="120" placeholder="tu@correo.com" autocomplete="email">
       </label>
+      <label>
+        Contraseña
+        <input type="password" id="loginPassword" required minlength="6" placeholder="Tu contraseña" autocomplete="current-password">
+      </label>
       <p class="error" id="loginError" hidden></p>
-      <button class="submit" type="submit" id="sendCodeBtn">Mandar enlace</button>
+      <button class="submit" type="submit" id="loginBtn">Entrar</button>
     </form>
-    <div id="sentView" hidden>
-      <p class="sent">Te mandé un enlace a <strong id="sentTo"></strong>. Ábrelo y entras directo al panel.</p>
-      <button class="linklike" type="button" id="resendBtn">Mandar el enlace de nuevo</button>
-    </div>
   </section>
 
   <!-- Dashboard -->
@@ -56,6 +59,12 @@
     <p class="empty" id="emptyMsg" hidden>Nadie por aquí todavía.</p>
 
     <div class="users" id="usersList"></div>
+
+    <div class="dash-head" style="margin-top:34px">
+      <h1>Renovaciones pendientes</h1>
+    </div>
+    <p class="empty" id="renewalsEmpty">Nadie ha avisado que pagó.</p>
+    <div class="users" id="renewalsList"></div>
   </section>
 </main>
 
