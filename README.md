@@ -2,8 +2,7 @@
 
 Landing + registro para DJs de Cuba. El DJ dice qué géneros y cantantes quiere
 que se vigilen; cuando sale un tema nuevo, le llega el link a su correo o en
-el grupo de WhatsApp. Primera semana gratis, después 250 CUP al mes (200 CUP
-si se apunta el grupo entero). Pago por Transfermóvil.
+el grupo de WhatsApp. Primera semana gratis, después 250 CUP al mes, tarifa fija. Pago por Transfermóvil.
 
 ## Sitio
 
