@@ -21,25 +21,19 @@
   <!-- Login -->
   <section class="login" id="loginView">
     <h1>Panel admin</h1>
-    <p class="lede">Solo el administrador entra aquí. Te mando un código a tu correo y con eso entras, sin contraseña que olvidar.</p>
+    <p class="lede">Solo el administrador entra aquí. Te mando un enlace a tu correo, lo abres y entras directo, sin contraseña que olvidar.</p>
     <form id="loginForm" novalidate>
       <label>
         Tu correo
         <input type="email" id="loginEmail" required maxlength="120" placeholder="tu@correo.com" autocomplete="email">
       </label>
       <p class="error" id="loginError" hidden></p>
-      <button class="submit" type="submit" id="sendCodeBtn">Mandar código</button>
+      <button class="submit" type="submit" id="sendCodeBtn">Mandar enlace</button>
     </form>
-    <form id="codeForm" novalidate hidden>
-      <p class="sent">Te mandé un código de 6 dígitos a <strong id="sentTo"></strong>. Revísalo y ponlo aquí.</p>
-      <label>
-        Código
-        <input type="text" id="codeInput" required maxlength="6" inputmode="numeric" placeholder="123456" autocomplete="one-time-code">
-      </label>
-      <p class="error" id="codeError" hidden></p>
-      <button class="submit" type="submit" id="verifyBtn">Entrar</button>
-      <button class="linklike" type="button" id="resendBtn">Mandar el código de nuevo</button>
-    </form>
+    <div id="sentView" hidden>
+      <p class="sent">Te mandé un enlace a <strong id="sentTo"></strong>. Ábrelo y entras directo al panel.</p>
+      <button class="linklike" type="button" id="resendBtn">Mandar el enlace de nuevo</button>
+    </div>
   </section>
 
   <!-- Dashboard -->

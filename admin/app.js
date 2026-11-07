@@ -4,9 +4,8 @@ const loginView = document.getElementById("loginView");
 const dashView = document.getElementById("dashView");
 const logoutBtn = document.getElementById("logoutBtn");
 const loginForm = document.getElementById("loginForm");
-const codeForm = document.getElementById("codeForm");
+const sentView = document.getElementById("sentView");
 const loginError = document.getElementById("loginError");
-const codeError = document.getElementById("codeError");
 const dashError = document.getElementById("dashError");
 const usersList = document.getElementById("usersList");
 const emptyMsg = document.getElementById("emptyMsg");
@@ -56,18 +55,21 @@ function showLogin() {
   dashView.hidden = true;
   logoutBtn.hidden = true;
   loginForm.hidden = false;
-  codeForm.hidden = true;
+  sentView.hidden = true;
 }
 
+// Login by magic link: Supabase sends a sign-in link to the admin email.
+// The link points back to this panel and the session is detected on load,
+// so there is no code to type. The free plan does not allow editing the
+// email template to include a numeric code.
 async function sendCode(email) {
   hideError(loginError);
-  hideError(codeError);
   const { error } = await client.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
   if (error) throw error;
   loginEmail = email;
   document.getElementById("sentTo").textContent = email;
   loginForm.hidden = true;
-  codeForm.hidden = false;
+  sentView.hidden = false;
 }
 
 loginForm.addEventListener("submit", async (event) => {
@@ -80,10 +82,10 @@ loginForm.addEventListener("submit", async (event) => {
   try {
     await sendCode(email);
   } catch (err) {
-    showError(loginError, "No se pudo mandar el código. Revisa el correo e inténtalo de nuevo.");
+    showError(loginError, "No se pudo mandar el enlace. Revisa el correo e inténtalo de nuevo.");
   } finally {
     btn.disabled = false;
-    btn.textContent = "Mandar código";
+    btn.textContent = "Mandar enlace";
   }
 });
 
@@ -91,30 +93,7 @@ document.getElementById("resendBtn").addEventListener("click", async () => {
   try {
     await sendCode(loginEmail);
   } catch (err) {
-    showError(codeError, "No se pudo mandar el código de nuevo.");
-  }
-});
-
-codeForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const token = document.getElementById("codeInput").value.trim();
-  if (token.length !== 6) return showError(codeError, "El código tiene 6 dígitos.");
-  const btn = document.getElementById("verifyBtn");
-  btn.disabled = true;
-  btn.textContent = "Entrando…";
-  try {
-    const { data, error } = await client.auth.verifyOtp({ email: loginEmail, token, type: "email" });
-    if (error) throw error;
-    if (!data.user || data.user.email.toLowerCase() !== ADMIN_EMAIL) {
-      await client.auth.signOut();
-      throw new Error("not admin");
-    }
-    showDash();
-  } catch (err) {
-    showError(codeError, "Código incorrecto o vencido. Pide uno nuevo.");
-  } finally {
-    btn.disabled = false;
-    btn.textContent = "Entrar";
+    showError(loginError, "No se pudo mandar el enlace de nuevo.");
   }
 });
 
