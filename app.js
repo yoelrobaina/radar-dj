@@ -37,6 +37,32 @@ let currentEmail = "";
 let isRecovery = false;
 let selectedGenres = new Set();
 
+// Anti-spam del registro (sin CAPTCHA de pago): campo trampa invisible,
+// tiempo mínimo para llenar el formulario y límite de intentos por navegador.
+let formOpenedAt = 0;
+const MIN_FILL_MS = 3000;
+const MAX_ATTEMPTS_PER_HOUR = 3;
+
+function attemptsInLastHour(key) {
+  try {
+    return JSON.parse(localStorage.getItem(key) || "[]").filter((t) => Date.now() - t < 3600000);
+  } catch (e) {
+    return [];
+  }
+}
+
+function recordAttempt(key) {
+  const list = attemptsInLastHour(key);
+  list.push(Date.now());
+  try {
+    localStorage.setItem(key, JSON.stringify(list));
+  } catch (e) { /* sin almacenamiento, sigue sin el límite local */ }
+}
+
+function tooManyAttempts(key) {
+  return attemptsInLastHour(key).length >= MAX_ATTEMPTS_PER_HOUR;
+}
+
 function showError(box, message) {
   box.textContent = message;
   box.hidden = false;
@@ -78,6 +104,7 @@ function showAuthView(view) {
 }
 
 function showTab(tab) {
+  if (tab === "register") formOpenedAt = Date.now();
   showAuthView(tab);
 }
 
@@ -181,6 +208,11 @@ async function loadMyRow(email) {
 registerForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   hideError(registerError);
+  // Anti-spam: un bot llena el campo trampa o manda el formulario al instante.
+  const honeypot = (document.getElementById("regWebsite") || {}).value || "";
+  if (honeypot.trim()) return showError(registerError, "No se pudo crear la cuenta. Inténtalo de nuevo.");
+  if (formOpenedAt && Date.now() - formOpenedAt < MIN_FILL_MS) return showError(registerError, "Espera unos segundos y vuelve a intentarlo.");
+  if (tooManyAttempts("rdj_reg_attempts")) return showError(registerError, "Ya intentaste varias veces. Espera una hora e inténtalo de nuevo.");
   const name = document.getElementById("regName").value.trim();
   const email = document.getElementById("regEmail").value.trim().toLowerCase();
   const phone = document.getElementById("regPhone").value.trim();
@@ -192,6 +224,7 @@ registerForm.addEventListener("submit", async (event) => {
   if (password.length < 6) return showError(registerError, "La contraseña tiene que tener 6 caracteres mínimo.");
   if (selectedGenres.size === 0) return showError(registerError, "Marca al menos un género.");
 
+  recordAttempt("rdj_reg_attempts");
   const btn = document.getElementById("registerBtn");
   btn.disabled = true;
   btn.textContent = "Creando tu cuenta…";
@@ -281,6 +314,8 @@ recoverForm.addEventListener("submit", async (event) => {
   recoverOk.textContent = "";
   const email = document.getElementById("recoverEmail").value.trim().toLowerCase();
   if (!email) return showError(recoverError, "Pon tu correo.");
+  if (tooManyAttempts("rdj_recover_attempts")) return showError(recoverError, "Ya pediste el enlace varias veces. Espera una hora e inténtalo de nuevo.");
+  recordAttempt("rdj_recover_attempts");
   const btn = document.getElementById("recoverBtn");
   btn.disabled = true;
   btn.textContent = "Mandando…";

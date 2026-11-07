@@ -27,6 +27,7 @@
   .modal-card form label, .modal-card form fieldset { display: block; margin-bottom: 18px; }
   .modal-card input[type="password"] { width: 100%; margin-top: 8px; background: #0d0d0f; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); font: inherit; padding: 12px 14px; }
   .ok { color: var(--green); font-weight: 700; }
+  .honeypot { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
   .panel-box { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 30px 26px; }
   .panel-box .kv { margin: 0 0 8px; color: #d8d5cf; }
   .panel-box .kv strong { color: var(--ink); }
@@ -188,6 +189,12 @@
         Contraseña
         <input type="password" id="regPassword" required minlength="6" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
       </label>
+      <div class="honeypot" aria-hidden="true">
+        <label>
+          Deja esto vacío
+          <input type="text" id="regWebsite" name="website" tabindex="-1" autocomplete="off">
+        </label>
+      </div>
       <fieldset>
         <legend>Qué géneros quieres que vigile <span class="opt">(marca al menos uno)</span></legend>
         <div class="chips" id="genresModal">
