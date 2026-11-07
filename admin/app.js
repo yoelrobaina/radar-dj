@@ -64,7 +64,10 @@ function showLogin() {
 // email template to include a numeric code.
 async function sendCode(email) {
   hideError(loginError);
-  const { error } = await client.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
+  const { error } = await client.auth.signInWithOtp({
+    email,
+    options: { shouldCreateUser: false, emailRedirectTo: "https://radardj.vercel.app/admin/" },
+  });
   if (error) throw error;
   loginEmail = email;
   document.getElementById("sentTo").textContent = email;
@@ -201,7 +204,15 @@ async function setSubscription(user, mode, btn) {
 }
 
 async function deleteUser(user, btn) {
-  if (!window.confirm(`¿Eliminar a ${user.name || user.email || "este usuario"}?`)) return;
+  if (!btn.dataset.confirm) {
+    btn.dataset.confirm = "1";
+    btn.textContent = "¿Seguro? Toca para borrar";
+    setTimeout(() => {
+      delete btn.dataset.confirm;
+      btn.textContent = "Eliminar";
+    }, 5000);
+    return;
+  }
   btn.disabled = true;
   const { error } = await client.from("radar_dj_signups").delete().eq("id", user.id);
   if (error) {
@@ -216,6 +227,12 @@ searchInput.addEventListener("input", renderUsers);
 document.getElementById("refreshBtn").addEventListener("click", loadUsers);
 
 (async function init() {
+  client.auth.onAuthStateChange((event, session) => {
+    if (event === "SIGNED_IN" && session && session.user && session.user.email.toLowerCase() === ADMIN_EMAIL) {
+      loginEmail = session.user.email;
+      showDash();
+    }
+  });
   const { data } = await client.auth.getSession();
   if (data.session && data.session.user && data.session.user.email.toLowerCase() === ADMIN_EMAIL) {
     loginEmail = data.session.user.email;
