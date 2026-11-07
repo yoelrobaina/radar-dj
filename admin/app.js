@@ -1,4 +1,17 @@
-const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// La librería de Supabase ahora vive en el propio repo (vendor/), no en un
+// CDN: si no carga, el login debe avisar en vez de recargar la página en
+// silencio (sin este try, un fallo de carga tumbaba todo el script y el
+// formulario se enviaba de forma nativa).
+let client = null;
+try {
+  client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+} catch (err) {
+  const box = document.getElementById("loginError");
+  if (box) {
+    box.textContent = "No se pudo cargar el inicio de sesión. Revisa tu conexión y recarga la página.";
+    box.hidden = false;
+  }
+}
 
 
 const loginView = document.getElementById("loginView");
@@ -77,6 +90,7 @@ function showLogin() {
 loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   hideError(loginError);
+  if (!client) return showError(loginError, "No se pudo cargar el inicio de sesión. Revisa tu conexión y recarga la página.");
   const email = document.getElementById("loginEmail").value.trim().toLowerCase();
   const password = document.getElementById("loginPassword").value;
 
@@ -348,6 +362,7 @@ document.getElementById("refreshBtn").addEventListener("click", () => {
 });
 
 (async function init() {
+  if (!client) return;
   client.auth.onAuthStateChange((event, session) => {
     if (event === "SIGNED_IN" && session && session.user && session.user.email.toLowerCase() === ADMIN_EMAIL) {
       showDash();
