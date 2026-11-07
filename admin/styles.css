@@ -95,6 +95,8 @@ input::placeholder { color: #5d5a66; }
   cursor: pointer;
 }
 
+.textlink { color: var(--amber); font-weight: 700; }
+
 .sent { color: #d8d5cf; margin: 0 0 18px; }
 
 .error { color: var(--red); font-weight: 700; }
