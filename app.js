@@ -23,8 +23,18 @@ const renewBtn = document.getElementById("renewBtn");
 const renewBox = document.getElementById("renewBox");
 const paidBtn = document.getElementById("paidBtn");
 const renewMsg = document.getElementById("renewMsg");
+const recoverForm = document.getElementById("recoverForm");
+const newPasswordForm = document.getElementById("newPasswordForm");
+const goRecoverBtn = document.getElementById("goRecoverBtn");
+const backToLoginBtn = document.getElementById("backToLoginBtn");
+const loginOk = document.getElementById("loginOk");
+const recoverError = document.getElementById("recoverError");
+const recoverOk = document.getElementById("recoverOk");
+const newPasswordError = document.getElementById("newPasswordError");
+const newPasswordOk = document.getElementById("newPasswordOk");
 
 let currentEmail = "";
+let isRecovery = false;
 let selectedGenres = new Set();
 
 function showError(box, message) {
@@ -54,18 +64,29 @@ function closeModal() {
   document.body.style.overflow = "";
 }
 
+function showAuthView(view) {
+  loginForm.hidden = view !== "login";
+  registerForm.hidden = view !== "register";
+  recoverForm.hidden = view !== "recover";
+  newPasswordForm.hidden = view !== "newpassword";
+  recoverError.hidden = true;
+  recoverOk.hidden = true;
+  newPasswordError.hidden = true;
+  newPasswordOk.hidden = true;
+  tabLogin.setAttribute("aria-selected", view === "login" ? "true" : "false");
+  tabRegister.setAttribute("aria-selected", view === "register" ? "true" : "false");
+}
+
 function showTab(tab) {
-  const isLogin = tab === "login";
-  loginForm.hidden = !isLogin;
-  registerForm.hidden = isLogin;
-  tabLogin.setAttribute("aria-selected", isLogin ? "true" : "false");
-  tabRegister.setAttribute("aria-selected", isLogin ? "false" : "true");
+  showAuthView(tab);
 }
 
 ctaSignup.addEventListener("click", () => openModal("register"));
 openRegisterBtn.addEventListener("click", () => openModal("register"));
 openLoginBtn.addEventListener("click", () => openModal("login"));
 goRegisterBtn.addEventListener("click", () => showTab("register"));
+goRecoverBtn.addEventListener("click", () => showAuthView("recover"));
+backToLoginBtn.addEventListener("click", () => showAuthView("login"));
 tabLogin.addEventListener("click", () => showTab("login"));
 tabRegister.addEventListener("click", () => showTab("register"));
 closeModalBtn.addEventListener("click", closeModal);
@@ -252,6 +273,61 @@ loginForm.addEventListener("submit", async (event) => {
   }
 });
 
+// Recuperación de contraseña: manda el enlace al correo.
+recoverForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  hideError(recoverError);
+  recoverOk.hidden = true;
+  recoverOk.textContent = "";
+  const email = document.getElementById("recoverEmail").value.trim().toLowerCase();
+  if (!email) return showError(recoverError, "Pon tu correo.");
+  const btn = document.getElementById("recoverBtn");
+  btn.disabled = true;
+  btn.textContent = "Mandando…";
+  try {
+    const { error } = await client.auth.resetPasswordForEmail(email, {
+      redirectTo: "https://radardj.vercel.app/",
+    });
+    if (error) throw error;
+    recoverOk.textContent = "Listo. Te mandamos un correo con el enlace para poner una contraseña nueva. Revisa también el spam.";
+    recoverOk.hidden = false;
+  } catch (err) {
+    showError(recoverError, "No se pudo mandar el correo. Revisa el correo e inténtalo de nuevo.");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Mandar el enlace";
+  }
+});
+
+// Contraseña nueva (tras abrir el enlace del correo).
+newPasswordForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  hideError(newPasswordError);
+  newPasswordOk.hidden = true;
+  newPasswordOk.textContent = "";
+  const p1 = document.getElementById("newPassword").value;
+  const p2 = document.getElementById("newPassword2").value;
+  if (p1.length < 6) return showError(newPasswordError, "La contraseña tiene que tener 6 caracteres mínimo.");
+  if (p1 !== p2) return showError(newPasswordError, "Las contraseñas no coinciden.");
+  const btn = document.getElementById("newPasswordBtn");
+  btn.disabled = true;
+  btn.textContent = "Cambiando…";
+  try {
+    const { error } = await client.auth.updateUser({ password: p1 });
+    if (error) throw error;
+    await client.auth.signOut();
+    isRecovery = false;
+    showAuthView("login");
+    loginOk.textContent = "Contraseña cambiada. Entra con la nueva.";
+    loginOk.hidden = false;
+  } catch (err) {
+    showError(newPasswordError, "No se pudo cambiar la contraseña. El enlace pudo haber vencido: pide uno nuevo.");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Cambiar mi contraseña";
+  }
+});
+
 // Salir
 logoutBtn.addEventListener("click", async () => {
   await client.auth.signOut();
@@ -282,9 +358,25 @@ paidBtn.addEventListener("click", async () => {
   }
 });
 
+// Recuperación de contraseña: el enlace del correo trae un token en la URL.
+function showNewPasswordView() {
+  isRecovery = true;
+  openModal("login");
+  showAuthView("newpassword");
+  history.replaceState(null, "", window.location.pathname);
+}
+
 // Sesión al cargar
 client.auth.onAuthStateChange(async (event, session) => {
+  if (event === "PASSWORD_RECOVERY") {
+    showNewPasswordView();
+    return;
+  }
   if (event === "SIGNED_IN" && session && session.user) {
+    if (isRecovery) {
+      showNewPasswordView();
+      return;
+    }
     currentEmail = session.user.email;
     const row = await loadMyRow(currentEmail);
     if (row) showPanel(row);
@@ -294,8 +386,15 @@ client.auth.onAuthStateChange(async (event, session) => {
 });
 
 (async function init() {
+  if ((window.location.hash || "").includes("type=recovery")) {
+    showNewPasswordView();
+  }
   const { data } = await client.auth.getSession();
   if (data.session && data.session.user) {
+    if (isRecovery) {
+      showNewPasswordView();
+      return;
+    }
     currentEmail = data.session.user.email;
     const row = await loadMyRow(currentEmail);
     if (row) showPanel(row);

@@ -26,6 +26,7 @@
   .tabs button[aria-selected="true"] { background: var(--amber); border-color: var(--amber); color: #141414; }
   .modal-card form label, .modal-card form fieldset { display: block; margin-bottom: 18px; }
   .modal-card input[type="password"] { width: 100%; margin-top: 8px; background: #0d0d0f; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); font: inherit; padding: 12px 14px; }
+  .ok { color: var(--green); font-weight: 700; }
   .panel-box { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 30px 26px; }
   .panel-box .kv { margin: 0 0 8px; color: #d8d5cf; }
   .panel-box .kv strong { color: var(--ink); }
@@ -137,8 +138,37 @@
         <input type="password" id="loginPassword" required minlength="6" placeholder="Tu contraseña" autocomplete="current-password">
       </label>
       <p class="error" id="loginError" hidden></p>
+      <p class="ok" id="loginOk" hidden></p>
       <button class="submit" type="submit" id="loginBtn">Entrar</button>
+      <p class="fine" style="margin-top:14px">¿Olvidaste tu contraseña? <button class="linklike" type="button" id="goRecoverBtn">Recupérala aquí</button></p>
       <p class="fine" style="margin-top:14px">¿No tienes cuenta? <button class="linklike" type="button" id="goRegisterBtn">Regístrate aquí</button></p>
+    </form>
+
+    <form id="recoverForm" novalidate hidden>
+      <p class="form-intro">Te mandamos un enlace a tu correo para poner una contraseña nueva.</p>
+      <label>
+        Correo
+        <input type="email" id="recoverEmail" required maxlength="120" placeholder="tu@correo.com" autocomplete="email">
+      </label>
+      <p class="error" id="recoverError" hidden></p>
+      <p class="ok" id="recoverOk" hidden></p>
+      <button class="submit" type="submit" id="recoverBtn">Mandar el enlace</button>
+      <p class="fine" style="margin-top:14px"><button class="linklike" type="button" id="backToLoginBtn">Volver a entrar</button></p>
+    </form>
+
+    <form id="newPasswordForm" novalidate hidden>
+      <p class="form-intro">Pon tu contraseña nueva.</p>
+      <label>
+        Contraseña nueva
+        <input type="password" id="newPassword" required minlength="6" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+      </label>
+      <label>
+        Repite la contraseña nueva
+        <input type="password" id="newPassword2" required minlength="6" placeholder="Repite la contraseña" autocomplete="new-password">
+      </label>
+      <p class="error" id="newPasswordError" hidden></p>
+      <p class="ok" id="newPasswordOk" hidden></p>
+      <button class="submit" type="submit" id="newPasswordBtn">Cambiar mi contraseña</button>
     </form>
 
     <form id="registerForm" novalidate>
