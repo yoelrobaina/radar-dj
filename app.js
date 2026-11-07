@@ -1,4 +1,12 @@
-const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// La librería de Supabase ahora vive en el propio repo (vendor/), no en un
+// CDN: si no carga, el login debe avisar en vez de fallar en silencio (sin
+// este try, un fallo de carga tumbaba todo el script).
+let client = null;
+try {
+  client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+} catch (err) {
+  client = null;
+}
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -208,6 +216,7 @@ async function loadMyRow(email) {
 registerForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   hideError(registerError);
+  if (!client) return showError(registerError, "No se pudo cargar el inicio de sesión. Revisa tu conexión y recarga la página.");
   // Anti-spam: un bot llena el campo trampa o manda el formulario al instante.
   const honeypot = (document.getElementById("regWebsite") || {}).value || "";
   if (honeypot.trim()) return showError(registerError, "No se pudo crear la cuenta. Inténtalo de nuevo.");
@@ -281,6 +290,7 @@ registerForm.addEventListener("submit", async (event) => {
 loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   hideError(loginError);
+  if (!client) return showError(loginError, "No se pudo cargar el inicio de sesión. Revisa tu conexión y recarga la página.");
   const email = document.getElementById("loginEmail").value.trim().toLowerCase();
   const password = document.getElementById("loginPassword").value;
   if (!email || !password) return showError(loginError, "Pon tu correo y tu contraseña.");
@@ -310,6 +320,7 @@ loginForm.addEventListener("submit", async (event) => {
 recoverForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   hideError(recoverError);
+  if (!client) return showError(recoverError, "No se pudo cargar el inicio de sesión. Revisa tu conexión y recarga la página.");
   recoverOk.hidden = true;
   recoverOk.textContent = "";
   const email = document.getElementById("recoverEmail").value.trim().toLowerCase();
@@ -402,7 +413,7 @@ function showNewPasswordView() {
 }
 
 // Sesión al cargar
-client.auth.onAuthStateChange(async (event, session) => {
+if (client) client.auth.onAuthStateChange(async (event, session) => {
   if (event === "PASSWORD_RECOVERY") {
     showNewPasswordView();
     return;
@@ -421,6 +432,7 @@ client.auth.onAuthStateChange(async (event, session) => {
 });
 
 (async function init() {
+  if (!client) return;
   if ((window.location.hash || "").includes("type=recovery")) {
     showNewPasswordView();
   }
