@@ -8,7 +8,22 @@ module.exports = async (req, res) => {
   }
   const searchUrl = "https://www.youtube.com/results?search_query=" + encodeURIComponent(q);
 
-  // 1) Invidious (yewtu.be): devuelve el videoId directo.
+  // Prefiere el "Official Video" sobre lyric/audio/visualizer; si no hay, el primero.
+  function pickOfficial(cands) {
+    const list = (cands || []).filter((c) => c && c.videoId);
+    if (!list.length) return null;
+    const norm = (s) => (s || "").toLowerCase();
+    const official = list.filter(
+      (c) => norm(c.title).includes("official video") && !norm(c.title).includes("lyric")
+    );
+    if (official.length) {
+      official.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
+      return official[0];
+    }
+    return list[0];
+  }
+
+  // 1) Invidious (yewtu.be): devuelve varios resultados con título y visitas.
   try {
     const r = await fetch("https://yewtu.be/api/v1/search?q=" + encodeURIComponent(q) + "&type=video", {
       headers: { "User-Agent": "Mozilla/5.0" },
@@ -16,15 +31,18 @@ module.exports = async (req, res) => {
     });
     if (r.ok) {
       const d = await r.json();
-      const hit = (Array.isArray(d) ? d : []).find((x) => x && x.type === "video" && x.videoId);
-      if (hit) {
-        res.json({ videoId: hit.videoId, title: hit.title || "", url: "https://www.youtube.com/watch?v=" + hit.videoId });
+      const cands = (Array.isArray(d) ? d : [])
+        .filter((x) => x && x.type === "video" && x.videoId)
+        .map((x) => ({ videoId: x.videoId, title: x.title || "", viewCount: x.viewCount || 0 }));
+      const pick = pickOfficial(cands);
+      if (pick) {
+        res.json({ videoId: pick.videoId, title: pick.title, url: "https://www.youtube.com/watch?v=" + pick.videoId });
         return;
       }
     }
   } catch (e) { /* siguiente vía */ }
 
-  // 2) Página de búsqueda de YouTube: primer videoId del HTML.
+  // 2) Página de búsqueda de YouTube: primeros videoIds del HTML, con título por oEmbed.
   try {
     const r = await fetch(searchUrl, {
       headers: {
@@ -35,10 +53,28 @@ module.exports = async (req, res) => {
     });
     if (r.ok) {
       const html = await r.text();
-      const m = html.match(/"videoId":"([A-Za-z0-9_-]{11})"/);
-      if (m) {
-        res.json({ videoId: m[1], url: "https://www.youtube.com/watch?v=" + m[1] });
-        return;
+      const ids = [...new Set([...html.matchAll(/"videoId":"([A-Za-z0-9_-]{11})"/g)].map((m) => m[1]))].slice(0, 5);
+      if (ids.length) {
+        const infos = await Promise.all(
+          ids.map(async (id) => {
+            try {
+              const o = await fetch(
+                "https://www.youtube.com/oembed?url=" + encodeURIComponent("https://www.youtube.com/watch?v=" + id) + "&format=json",
+                { signal: AbortSignal.timeout(5000) }
+              );
+              if (!o.ok) return { videoId: id, title: "" };
+              const j = await o.json();
+              return { videoId: id, title: j.title || "" };
+            } catch (e) {
+              return { videoId: id, title: "" };
+            }
+          })
+        );
+        const pick = pickOfficial(infos);
+        if (pick) {
+          res.json({ videoId: pick.videoId, url: "https://www.youtube.com/watch?v=" + pick.videoId });
+          return;
+        }
       }
     }
   } catch (e) { /* cae al respaldo */ }
