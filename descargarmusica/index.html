@@ -192,6 +192,8 @@
     $("result").hidden = true;
     try {
       let title = "", artist = "", cover = "", ytUrl = "", pageUrl = url;
+
+      // 1) song.link: da título, artista y el link de YouTube directo.
       try {
         const r = await fetch("https://api.song.link/v1-alpha.1/links?url=" + encodeURIComponent(url) + "&userCountry=US");
         if (r.ok) {
@@ -206,18 +208,27 @@
           if (d.linksByPlatform && d.linksByPlatform.youtube) ytUrl = d.linksByPlatform.youtube.url || "";
           if (d.pageUrl) pageUrl = d.pageUrl;
         }
-      } catch (e) { /* plan B abajo */ }
+      } catch (e) { /* sigue con el plan B */ }
+
+      // 2) Plan B por plataforma, sin depender de song.link.
       if (!title) {
-        const guess = decodeURIComponent((url.split("/").filter(Boolean).pop() || "").split("?")[0]).replace(/[-_]/g, " ");
-        if (guess) {
-          const t = await audiusSearch(guess);
-          if (t) {
-            title = t.title;
-            artist = t.user ? t.user.name : "";
-            cover = t.artwork ? t.artwork["480x480"] : "";
-          }
+        const meta = await metaFromUrl(url);
+        if (meta) {
+          title = meta.title || "";
+          artist = meta.artist || "";
+          cover = meta.cover || cover;
         }
       }
+
+      // 3) Con el título, completa el artista y la portada en iTunes.
+      if (title && !artist) {
+        const hit = await itunesSearch(title, 1);
+        if (hit) {
+          artist = hit.artistName || artist;
+          if (!cover) cover = hit.artworkUrl100 || "";
+        }
+      }
+
       if (!title) throw new Error("no-title");
       current = { title: title, artist: artist || "Artista desconocido", cover: cover, pageUrl: pageUrl, ytUrl: "", audiusUrl: "" };
       const track = await audiusSearch(title + " " + artist);
@@ -233,6 +244,62 @@
       btn.disabled = false;
       btn.textContent = "Buscar mi tema";
     }
+  }
+
+  // Saca título/artista/portada del link según la plataforma, sin song.link.
+  async function metaFromUrl(url) {
+    const lower = url.toLowerCase();
+    try {
+      if (lower.includes("open.spotify.com/track/")) {
+        const r = await fetch("https://open.spotify.com/oembed?url=" + encodeURIComponent(url));
+        if (r.ok) {
+          const d = await r.json();
+          return { title: d.title || "", artist: "", cover: d.thumbnail_url || "" };
+        }
+        return null;
+      }
+      if (lower.includes("music.apple.com")) {
+        const m = url.match(/[?&]i=(\d+)/) || url.match(/\/id(\d+)/);
+        if (m) {
+          const r = await fetch("https://itunes.apple.com/lookup?id=" + m[1] + "&country=US");
+          if (r.ok) {
+            const d = await r.json();
+            const t = (d.results || []).find((x) => x.wrapperType === "track") || (d.results || [])[0];
+            if (t) return { title: t.trackName || "", artist: t.artistName || "", cover: (t.artworkUrl100 || "").replace("100x100", "480x480") };
+          }
+        }
+        return null;
+      }
+      if (lower.includes("youtube.com/watch") || lower.includes("youtu.be/")) {
+        const r = await fetch("https://www.youtube.com/oembed?url=" + encodeURIComponent(url) + "&format=json");
+        if (r.ok) {
+          const d = await r.json();
+          return { title: d.title || "", artist: d.author_name || "", cover: d.thumbnail_url || "" };
+        }
+        return null;
+      }
+      if (lower.includes("deezer.com/track/")) {
+        const m = url.match(/\/track\/(\d+)/);
+        if (m) {
+          const r = await fetch("https://api.deezer.com/track/" + m[1]);
+          if (r.ok) {
+            const d = await r.json();
+            return { title: d.title || "", artist: d.artist ? d.artist.name : "", cover: d.album ? d.album.cover_medium : "" };
+          }
+        }
+        return null;
+      }
+    } catch (e) { return null; }
+    return null;
+  }
+
+  async function itunesSearch(q, limit) {
+    try {
+      const r = await fetch("https://itunes.apple.com/search?term=" + encodeURIComponent(q) + "&media=music&entity=song&limit=" + (limit || 5) + "&country=US");
+      if (!r.ok) return null;
+      const d = await r.json();
+      return (d.results && d.results[0]) || null;
+    } catch (e) { return null; }
   }
 
   async function searchByName() {
