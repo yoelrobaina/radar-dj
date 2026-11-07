@@ -235,7 +235,7 @@
       if (track) {
         current.audiusUrl = "https://discoveryprovider.audius.co/v1/tracks/" + track.id + "/stream?app_name=RadarDJ";
       }
-      if (!ytUrl) ytUrl = "https://www.youtube.com/results?search_query=" + encodeURIComponent(title + " " + artist);
+      if (!ytUrl) ytUrl = await youtubeDirect(title, artist);
       current.ytUrl = ytUrl;
       showResult();
     } catch (e) {
@@ -300,6 +300,27 @@
       const d = await r.json();
       return (d.results && d.results[0]) || null;
     } catch (e) { return null; }
+  }
+
+  // Busca el video exacto en YouTube para enlazar directo al tema, no a la búsqueda.
+  // Prueba instancias de Invidious; si ninguna responde, vuelve a la búsqueda de YouTube.
+  async function youtubeDirect(title, artist) {
+    const q = encodeURIComponent((title + " " + artist).trim());
+    const searchUrl = "https://www.youtube.com/results?search_query=" + q;
+    const instances = [
+      "https://yewtu.be/api/v1/search",
+      "https://inv.nadeko.net/api/v1/search",
+    ];
+    for (const base of instances) {
+      try {
+        const r = await fetch(base + "?q=" + q + "&type=video");
+        if (!r.ok) continue;
+        const d = await r.json();
+        const hit = (Array.isArray(d) ? d : []).find((x) => x && x.type === "video" && x.videoId);
+        if (hit) return "https://www.youtube.com/watch?v=" + hit.videoId;
+      } catch (e) { /* prueba la siguiente instancia */ }
+    }
+    return searchUrl;
   }
 
   async function searchByName() {
