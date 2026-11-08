@@ -2,120 +2,507 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0d">
 <title>Radar DJ — La música nueva te llega sola</title>
 <meta name="description" content="Radar DJ vigila todos los días el reparto, el reguetón y el afrohouse. Cuando sale un tema nuevo, te llega el link directo por correo. Primera semana gratis.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
 <style>
-  button.brand { background: none; border: 0; padding: 0; cursor: pointer; color: var(--ink); font-family: inherit; }
-  button.cta { border: 0; cursor: pointer; font-family: inherit; }
-  .textlink { color: var(--amber); font-weight: 700; }
-  .linklike { background: none; border: 0; padding: 0; cursor: pointer; color: var(--amber); font: inherit; font-weight: 700; }
-  .ghost { background: transparent; border: 1px solid var(--line); color: var(--ink); font: inherit; font-weight: 700; border-radius: 999px; padding: 12px 22px; cursor: pointer; }
-  .ghost:hover { border-color: var(--amber); }
-  .modal { position: fixed; inset: 0; background: rgba(0,0,0,.72); display: flex; align-items: flex-start; justify-content: center; padding: 24px 14px; z-index: 50; overflow-y: auto; }
-  .modal[hidden] { display: none; }
-  .modal-card { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 26px 22px; width: 100%; max-width: 560px; margin-top: 4vh; }
-  .modal-card h2 { margin-bottom: 6px; }
-  .modal-close { float: right; background: none; border: 0; color: var(--muted); font-size: 28px; cursor: pointer; line-height: 1; padding: 4px 8px; }
-  .tabs { display: flex; gap: 8px; margin: 14px 0 20px; }
-  .tabs button { flex: 1; font: inherit; font-weight: 800; padding: 11px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
-  .tabs button[aria-selected="true"] { background: var(--amber); border-color: var(--amber); color: #141414; }
-  .modal-card form label, .modal-card form fieldset { display: block; margin-bottom: 18px; }
-  .modal-card input[type="password"] { width: 100%; margin-top: 8px; background: #0d0d0f; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); font: inherit; padding: 12px 14px; }
-  .ok { color: var(--green); font-weight: 700; }
-  .honeypot { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
-  .panel-box { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 30px 26px; }
-  .panel-box .kv { margin: 0 0 8px; color: #d8d5cf; }
-  .panel-box .kv strong { color: var(--ink); }
-  .big-days { font-size: 44px; font-weight: 900; line-height: 1; margin: 6px 0 2px; }
-  .big-days span { font-size: 18px; font-weight: 700; color: var(--muted); }
-  .badge { display: inline-block; font-weight: 800; font-size: 14px; padding: 4px 12px; border-radius: 999px; background: var(--green); color: #0d0d0f; }
-  .badge.free { background: var(--amber); }
-  .badge.expired { background: var(--danger); color: #fff; }
-  .panel-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
-  .chip-static { display: inline-block; font-weight: 700; border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; margin: 0 8px 8px 0; }
-  .renew-box { background: #0d0d0f; border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-top: 18px; }
-  @media (max-width: 520px) { .modal-card { padding: 22px 16px; } .panel-box { padding: 24px 18px; } }
+/* ============ RADAR DJ — sistema de identidad v3 ============
+   UNA idea: el ecualizador. Es la marca (logo), el visual del hero
+   y el único motivo decorativo. Todo lo demás es quieto y disciplinado.
+   Tokens: 2 acentos y punto. Ámbar = marca/acción. Verde = estado (en vivo).
+   Tipografía: solo Archivo. Sin mono, sin emojis, sin más colores. */
+:root {
+  --bg: #0b0b0d;
+  --surface: #141417;
+  --surface-2: #1a1a1e;
+  --line: rgba(245, 242, 234, .09);
+  --line-strong: rgba(245, 242, 234, .16);
+  --ink: #f5f2ea;
+  --muted: #a8a29a;
+  --faint: #6e6a63;
+  --amber: #ffb020;
+  --amber-soft: rgba(255, 176, 32, .12);
+  --green: #2fd67a;
+  --green-soft: rgba(47, 214, 122, .12);
+  --danger: #ff5a5a;
+  --r-card: 20px;
+  --r-pill: 999px;
+  --wrap: 1120px;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+::selection { background: var(--amber); color: #141414; }
+a { color: inherit; }
+button { font-family: inherit; }
+:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; border-radius: 6px; }
+
+/* Fondo vivo de página completa: dos luces que respiran + grano */
+.bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.bg .glow { position: absolute; border-radius: 50%; filter: blur(90px); }
+.bg .glow-a { width: 640px; height: 640px; top: -220px; left: -120px;
+  background: radial-gradient(circle, rgba(255, 176, 32, .20), transparent 65%);
+  animation: drift-a 26s ease-in-out infinite alternate; }
+.bg .glow-b { width: 560px; height: 560px; bottom: -240px; right: -140px;
+  background: radial-gradient(circle, rgba(47, 214, 122, .10), transparent 65%);
+  animation: drift-b 32s ease-in-out infinite alternate; }
+@keyframes drift-a { from { transform: translate(0, 0); } to { transform: translate(90px, 60px); } }
+@keyframes drift-b { from { transform: translate(0, 0); } to { transform: translate(-70px, -50px); } }
+.bg .grain { position: absolute; inset: 0; opacity: .05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E"); }
+
+header.top, main, footer { position: relative; z-index: 1; }
+.wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 24px; }
+
+/* ---------- Barra superior ---------- */
+.top { position: sticky; top: 0; z-index: 30;
+  background: rgba(11, 11, 13, .82); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--line); }
+.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 64px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; background: none; border: 0; padding: 0;
+  cursor: pointer; color: var(--ink); font-weight: 900; letter-spacing: .14em; font-size: 17px; }
+.brand .eqmark { display: inline-flex; align-items: flex-end; gap: 2.5px; height: 18px; }
+.brand .eqmark i { display: block; width: 3.5px; background: var(--amber); border-radius: 2px; }
+.brand .eqmark i:nth-child(1) { height: 8px; }
+.brand .eqmark i:nth-child(2) { height: 15px; }
+.brand .eqmark i:nth-child(3) { height: 11px; }
+.brand .eqmark i:nth-child(4) { height: 18px; }
+.top-right { display: flex; align-items: center; gap: 14px; }
+.live { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13.5px; font-weight: 700; }
+.live .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green);
+  box-shadow: 0 0 0 0 rgba(47, 214, 122, .5); animation: pulse 2.2s infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(47, 214, 122, .45); } 70% { box-shadow: 0 0 0 9px rgba(47, 214, 122, 0); } 100% { box-shadow: 0 0 0 0 rgba(47, 214, 122, 0); } }
+.top-cta { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 20px; border-radius: var(--r-pill);
+  background: var(--amber); color: #141414; font-weight: 800; font-size: 15px; text-decoration: none; }
+
+/* ---------- Botones y enlaces (un solo sistema) ---------- */
+.cta { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 54px;
+  padding: 15px 30px; border: 0; border-radius: var(--r-pill); cursor: pointer;
+  background: var(--amber); color: #141414; font-weight: 800; font-size: 17px; text-decoration: none;
+  transition: transform .18s ease, box-shadow .18s ease; }
+.cta:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(255, 176, 32, .28); }
+.cta:active { transform: translateY(0); }
+.cta svg, .top-cta svg { flex: none; }
+.ghost { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 12px 22px;
+  background: transparent; border: 1px solid var(--line-strong); color: var(--ink); font-weight: 700; font-size: 15.5px;
+  border-radius: var(--r-pill); cursor: pointer; transition: border-color .18s ease; }
+.ghost:hover { border-color: var(--amber); }
+.textlink { color: var(--amber); font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+.textlink:hover { text-decoration: underline; }
+.linklike { background: none; border: 0; padding: 0; cursor: pointer; color: var(--amber); font: inherit; font-weight: 700; }
+.linklike:hover { text-decoration: underline; }
+.submit { width: 100%; min-height: 54px; border: 0; border-radius: var(--r-pill); cursor: pointer;
+  background: var(--amber); color: #141414; font-weight: 800; font-size: 17px;
+  transition: transform .18s ease, box-shadow .18s ease; }
+.submit:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(255, 176, 32, .28); }
+.submit:disabled { opacity: .55; cursor: wait; transform: none; box-shadow: none; }
+.fine { color: var(--muted); font-size: 14px; text-align: center; }
+.ok { color: var(--green); font-weight: 700; }
+.error { color: var(--danger); font-weight: 700; margin: 0 0 16px; }
+
+/* ---------- Hero ---------- */
+.hero { padding: 76px 0 72px; }
+.hero-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 56px; align-items: center; }
+.hero-grid > * { min-width: 0; }
+.steps > * { min-width: 0; }
+.eyebrow { margin: 0 0 20px; color: var(--amber); font-size: 14px; font-weight: 800; letter-spacing: .06em; }
+h1 { margin: 0 0 24px; font-size: clamp(54px, 7.6vw, 108px); line-height: .96; font-weight: 900; letter-spacing: -.03em; }
+h1 .line { display: block; overflow: hidden; }
+h1 .line > span { display: inline-block; animation: rise .8s cubic-bezier(.2, .7, .2, 1) both; }
+h1 .line:nth-child(2) > span { animation-delay: .1s; }
+h1 .line:nth-child(3) > span { animation-delay: .2s; }
+@keyframes rise { from { transform: translateY(110%); } to { transform: translateY(0); } }
+h1 .eq-inline { display: inline-flex; align-items: flex-end; gap: 3px; height: .72em; margin-left: .08em; vertical-align: baseline; }
+h1 .eq-inline i { display: block; width: 5px; background: var(--amber); border-radius: 3px; animation: eqbar 1s ease-in-out infinite; }
+h1 .eq-inline i:nth-child(1) { height: 34%; animation-delay: 0s; }
+h1 .eq-inline i:nth-child(2) { height: 72%; animation-delay: .18s; }
+h1 .eq-inline i:nth-child(3) { height: 48%; animation-delay: .36s; }
+h1 .eq-inline i:nth-child(4) { height: 88%; animation-delay: .1s; }
+@keyframes eqbar { 0%, 100% { transform: scaleY(.55); } 50% { transform: scaleY(1); } }
+.lede { margin: 0 0 14px; max-width: 54ch; color: #d8d5cf; font-size: 18px; }
+.lede.small { color: var(--muted); font-size: 16px; }
+.hero-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 20px; margin-top: 28px; }
+.hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 44px; padding-top: 26px;
+  border-top: 1px solid var(--line); }
+.hero-stats .stat b { display: block; font-size: clamp(24px, 2.6vw, 32px); font-weight: 900; letter-spacing: -.02em; line-height: 1.05; }
+.hero-stats .stat b em { font-style: normal; color: var(--amber); }
+.hero-stats .stat span { color: var(--muted); font-size: 13.5px; font-weight: 700; }
+
+/* Consola: la única pieza visual del hero */
+.console { background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--r-card);
+  padding: 22px; box-shadow: 0 30px 80px rgba(0, 0, 0, .45); animation: fadein .9s ease .25s both; }
+@keyframes fadein { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+.console-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.console-head .c-title { font-weight: 800; font-size: 15px; }
+.tag { display: inline-flex; align-items: center; min-height: 24px; padding: 3px 10px; border-radius: var(--r-pill);
+  border: 1px solid rgba(255, 176, 32, .5); color: var(--amber); font-size: 11.5px; font-weight: 800; letter-spacing: .08em; }
+.console-sub { margin: 0 0 16px; color: var(--muted); font-size: 14px; }
+.eq { display: flex; align-items: flex-end; gap: 3px; height: 44px; margin-bottom: 18px; padding: 0 2px;
+  border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+.eq i { flex: 1; background: var(--amber); border-radius: 2px; transform-origin: bottom;
+  animation: eqbar 1.15s ease-in-out infinite; opacity: .9; }
+.eq i:nth-child(3n) { background: var(--green); }
+.track { display: flex; align-items: center; gap: 14px; padding: 13px 4px; border-top: 1px solid var(--line);
+  color: inherit; text-decoration: none; border-radius: 12px; transition: background .15s ease; }
+.track:hover { background: rgba(245, 242, 234, .04); }
+.track .cover { flex: none; width: 48px; height: 48px; border-radius: 12px; background: var(--surface-2);
+  border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; color: var(--amber); }
+.track .t-meta { display: block; min-width: 0; flex: 1; }
+.track .t-title { display: block; font-weight: 800; font-size: 15.5px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.track .t-artist { display: block; color: var(--muted); font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.track .t-pill { flex: none; font-size: 12px; font-weight: 800; color: var(--amber);
+  border: 1px solid rgba(255, 176, 32, .4); border-radius: var(--r-pill); padding: 4px 10px; }
+.console-foot { margin: 16px 0 0; padding-top: 14px; border-top: 1px solid var(--line);
+  color: var(--muted); font-size: 13.5px; font-weight: 700; display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.console-foot b { color: var(--ink); }
+
+/* ---------- Marquee de géneros ---------- */
+.ticker { overflow: hidden; white-space: nowrap; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  padding: 18px 0; }
+.ticker-track { display: inline-flex; align-items: center; animation: scrollx 30s linear infinite; will-change: transform; }
+.ticker-track span { font-size: clamp(40px, 5.6vw, 76px); font-weight: 900; letter-spacing: -.02em; line-height: 1;
+  color: transparent; -webkit-text-stroke: 1px rgba(245, 242, 234, .3); padding-right: 28px; }
+.ticker-track .sep { color: var(--amber); -webkit-text-stroke: 0; font-size: .5em; padding-right: 28px; }
+@keyframes scrollx { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* ---------- Secciones ---------- */
+section.block { padding: 96px 0; }
+section.block + section.block { border-top: 1px solid var(--line); }
+h2 { margin: 0 0 14px; font-size: clamp(30px, 4vw, 52px); font-weight: 900; letter-spacing: -.025em; line-height: 1.04; }
+.section-lede { margin: 0 0 40px; max-width: 56ch; color: var(--muted); font-size: 17.5px; }
+
+/* Pasos: una sola sección, tarjetas idénticas */
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.step { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); padding: 28px 26px;
+  transition: border-color .2s ease, transform .2s ease; }
+.step:hover { border-color: var(--line-strong); transform: translateY(-3px); }
+.step .num { color: var(--amber); font-weight: 900; font-size: 13px; letter-spacing: .14em; }
+.step .ic { width: 56px; height: 56px; margin: 18px 0 20px; border-radius: 16px; background: var(--surface-2);
+  border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; color: var(--amber); }
+.step h3 { margin: 0 0 8px; font-size: 20px; font-weight: 800; letter-spacing: -.01em; }
+.step p { margin: 0; color: var(--muted); font-size: 15.5px; }
+
+/* Precio: una sola tarjeta centrada */
+.price-card { max-width: 600px; margin: 0 auto; text-align: center; background: var(--surface);
+  border: 1px solid rgba(255, 176, 32, .35); border-radius: 24px; padding: 44px 36px;
+  box-shadow: 0 0 90px rgba(255, 176, 32, .07); }
+.price-card .amount { margin: 0; font-size: clamp(64px, 9vw, 88px); font-weight: 900; letter-spacing: -.03em; line-height: 1; }
+.price-card .amount span { font-size: 22px; font-weight: 700; color: var(--muted); letter-spacing: 0; }
+.price-card .free-pill { display: inline-flex; margin: 18px 0 8px; padding: 7px 16px; border-radius: var(--r-pill);
+  background: var(--green-soft); color: var(--green); font-weight: 800; font-size: 14px; }
+.price-card > p { color: var(--muted); max-width: 46ch; margin: 10px auto 0; }
+.price-card > p strong { color: var(--ink); }
+.checklist { list-style: none; margin: 26px auto 28px; padding: 0; max-width: 420px; text-align: left; }
+.checklist li { display: flex; gap: 12px; align-items: flex-start; padding: 9px 0; border-top: 1px solid var(--line); font-weight: 700; font-size: 15.5px; }
+.checklist li svg { flex: none; margin-top: 2px; color: var(--amber); }
+
+/* Registro y panel */
+.form-wrap { background: var(--surface); border: 1px solid var(--line); border-radius: 24px; padding: 44px 36px; max-width: 680px; margin: 0 auto; text-align: center; }
+.form-intro { color: var(--muted); margin: 0 0 26px; }
+.panel-box { background: var(--surface); border: 1px solid var(--line); border-radius: 24px; padding: 36px 32px; max-width: 680px; margin: 0 auto; }
+.panel-box h2 { font-size: 30px; }
+.panel-box .kv { margin: 0; padding: 11px 0; border-top: 1px solid var(--line); color: var(--muted); }
+.panel-box .kv:first-of-type { border-top: 0; }
+.panel-box .kv strong { color: var(--ink); }
+.big-days { font-size: 56px; font-weight: 900; line-height: 1; margin: 10px 0 2px; color: var(--amber); letter-spacing: -.02em; }
+.big-days span { font-size: 18px; font-weight: 700; color: var(--muted); letter-spacing: 0; }
+.badge { display: inline-flex; align-items: center; min-height: 28px; padding: 4px 14px; border-radius: var(--r-pill);
+  background: var(--green); color: #0b0b0d; font-weight: 800; font-size: 13.5px; }
+.badge.free { background: var(--amber); }
+.badge.expired { background: var(--danger); color: #fff; }
+.panel-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+.panel-actions .submit { width: auto; padding: 13px 26px; min-height: 48px; }
+.chip-static { display: inline-flex; font-weight: 700; font-size: 14px; border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill); padding: 7px 14px; margin: 0 8px 8px 0; }
+.renew-box { background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-top: 20px; }
+.renew-box p { margin-top: 0; }
+.renew-box .submit { width: auto; padding: 12px 22px; min-height: 48px; }
+
+/* FAQ */
+.faq-list { max-width: 760px; margin: 0 auto; border-top: 1px solid var(--line); }
+.faq-list details { border-bottom: 1px solid var(--line); }
+.faq-list summary { list-style: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding: 22px 4px; font-weight: 800; font-size: 18px; letter-spacing: -.01em; }
+.faq-list summary::-webkit-details-marker { display: none; }
+.faq-list summary svg { flex: none; color: var(--amber); transition: transform .25s ease; }
+.faq-list details[open ] summary svg { transform: rotate(180deg); }
+.faq-list details p { margin: 0; padding: 0 4px 24px; color: var(--muted); max-width: 62ch; }
+.faq-list details p strong { color: var(--ink); }
+
+/* Footer */
+footer { border-top: 1px solid var(--line); padding: 36px 0 calc(36px + env(safe-area-inset-bottom)); text-align: center; color: var(--muted); font-size: 14.5px; }
+footer .foot-brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); font-weight: 900;
+  letter-spacing: .14em; font-size: 15px; margin-bottom: 14px; }
+footer p { margin: 8px 0; }
+footer .textlink { font-size: 14.5px; }
+
+/* ---------- Modal ---------- */
+.modal { position: fixed; inset: 0; background: rgba(5, 5, 6, .8); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  display: flex; align-items: flex-start; justify-content: center; padding: 24px 14px; z-index: 50; overflow-y: auto; }
+.modal-card { background: var(--surface); border: 1px solid var(--line-strong); border-radius: 24px;
+  padding: 30px 26px; width: 100%; max-width: 560px; margin-top: 4vh; animation: fadein .3s ease both; }
+.modal-card h2 { font-size: 28px; margin-bottom: 6px; }
+.modal-close { float: right; background: none; border: 0; color: var(--muted); font-size: 30px; cursor: pointer; line-height: 1; padding: 4px 8px; }
+.modal-close:hover { color: var(--ink); }
+.tabs { display: flex; gap: 4px; margin: 16px 0 22px; background: var(--surface-2); border: 1px solid var(--line);
+  border-radius: var(--r-pill); padding: 4px; }
+.tabs button { flex: 1; font-weight: 800; font-size: 15px; padding: 11px; border-radius: var(--r-pill);
+  border: 0; background: transparent; color: var(--ink); cursor: pointer; min-height: 44px; }
+.tabs button[aria-selected="true"] { background: var(--amber); color: #141414; }
+.modal-card form label, .modal-card form fieldset { display: block; margin-bottom: 18px; font-weight: 700; font-size: 15px; }
+.modal-card form fieldset { border: 0; padding: 0; }
+.modal-card form legend { margin-bottom: 10px; font-weight: 700; }
+.modal-card input[type="password"] { width: 100%; margin-top: 8px; background: var(--bg); border: 1px solid var(--line);
+  border-radius: 12px; color: var(--ink); font: inherit; padding: 13px 14px; font-size: 16px; }
+input[type="text"], input[type="tel"], input[type="email"], textarea { width: 100%; margin-top: 8px;
+  background: var(--bg); border: 1px solid var(--line); border-radius: 12px; color: var(--ink);
+  font: inherit; padding: 13px 14px; font-size: 16px; }
+input::placeholder, textarea::placeholder { color: #5d5a66; }
+input:focus, textarea:focus { border-color: var(--amber); outline: none; }
+textarea { resize: vertical; min-height: 96px; }
+.opt { color: var(--muted); font-weight: 500; font-size: 13.5px; }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.chips button { font-weight: 700; font-size: 15px; background: transparent; color: var(--ink);
+  border: 1px solid var(--line-strong); border-radius: var(--r-pill); padding: 10px 16px; cursor: pointer; min-height: 44px;
+  transition: background .15s ease, border-color .15s ease, color .15s ease; }
+.chips button[aria-pressed="true"] { background: var(--amber); border-color: var(--amber); color: #141414; }
+.honeypot { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+
+/* Reveal al hacer scroll (con red de seguridad en JS) */
+.reveal { opacity: 0; transform: translateY(20px); transition: opacity .7s ease, transform .7s ease; }
+.reveal.in { opacity: 1; transform: none; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .hero-grid { grid-template-columns: 1fr; gap: 40px; }
+  .hero { padding: 56px 0 56px; }
+  .steps { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  body { font-size: 16.5px; }
+  h1 { font-size: clamp(42px, 12vw, 54px); }
+  .live .live-text { display: none; }
+  .top-cta { padding: 9px 16px; font-size: 14px; }
+  section.block { padding: 64px 0; }
+  .form-wrap, .panel-box { padding: 32px 20px; }
+  .price-card { padding: 36px 20px; }
+  .modal-card { padding: 26px 18px; }
+  .hero-stats { gap: 12px; }
+  .hero-stats .stat b { font-size: 21px; white-space: nowrap; }
+  .hero-stats .stat span { font-size: 12.5px; }
+  .console { padding: 18px 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .001s !important; animation-iteration-count: 1 !important; transition-duration: .001s !important; }
+  .reveal { opacity: 1; transform: none; }
+}
 </style>
 </head>
 <body>
+<div class="bg" aria-hidden="true"><div class="glow glow-a"></div><div class="glow glow-b"></div><div class="grain"></div></div>
+
 <header class="top">
-  <button class="brand" id="brandBtn" type="button" title="Inicio">RADAR&nbsp;DJ</button>
-  <span class="live"><span class="dot"></span>vigilando estrenos</span>
+  <div class="wrap">
+    <button class="brand" id="brandBtn" type="button" title="Inicio"><span class="eqmark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>RADAR&nbsp;DJ</button>
+    <div class="top-right">
+      <span class="live"><span class="dot"></span><span class="live-text">Vigilando estrenos</span></span>
+      <a class="top-cta" href="#registro">Apúntate</a>
+    </div>
+  </div>
 </header>
 
 <main>
   <section class="hero">
-    <h1>Nunca llegues<br>tarde a un tema.</h1>
-    <p class="lede">Te piden un tema en plena fiesta y no lo tienes porque salió ayer y no te enteraste. Radar DJ revisa todos los días lo nuevo de tus géneros y tus cantantes, y en cuanto sale algo, te cae el link directo por correo.</p>
-    <p class="lede small">Tú solo pinchas. Nosotros te mantenemos al día.</p>
-    <button class="cta" id="ctaSignup" type="button">Quiero que me avisen</button>
-    <p style="margin-top:16px"><a class="textlink" href="descargarmusica/">¿Te llegó un tema y no lo puedes bajar? Bajar música →</a></p>
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow">Radar DJ — Cienfuegos, Cuba</p>
+        <h1><span class="line"><span>Nunca llegues</span></span><span class="line"><span>tarde a un</span></span><span class="line"><span>tema.<span class="eq-inline" aria-hidden="true"><i></i><i></i><i></i><i></i></span></span></span></h1>
+        <p class="lede">Te piden un tema en plena fiesta y no lo tienes porque salió ayer y no te enteraste. Radar DJ revisa todos los días lo nuevo de tus géneros y tus cantantes, y en cuanto sale algo, te cae el link directo por correo.</p>
+        <p class="lede small">Tú solo pinchas. Nosotros te mantenemos al día.</p>
+        <div class="hero-cta">
+          <button class="cta" id="ctaSignup" type="button">Quiero que me avisen
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </button>
+          <a class="textlink" href="descargarmusica/">¿Te llegó un tema y no lo puedes bajar? Bajar música
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          </a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat"><b>5 <em>correos</em></b><span>al día, con lo nuevo</span></div>
+          <div class="stat"><b>24 <em>h</em></b><span>ventana de búsqueda</span></div>
+          <div class="stat"><b>250 <em>CUP</em></b><span>al mes, tarifa fija</span></div>
+        </div>
+      </div>
+
+      <aside class="console" aria-label="Ejemplo de un envío de Radar DJ">
+        <div class="console-head">
+          <span class="c-title">Ejemplo de un envío</span>
+          <span class="tag">EJEMPLO</span>
+        </div>
+        <p class="console-sub">Así se ve en tu correo cuando sale algo nuevo.</p>
+        <div class="eq" aria-hidden="true"><i style="height:38%;animation-delay:0s"></i><i style="height:72%;animation-delay:.12s"></i><i style="height:52%;animation-delay:.24s"></i><i style="height:88%;animation-delay:.06s"></i><i style="height:44%;animation-delay:.3s"></i><i style="height:66%;animation-delay:.18s"></i><i style="height:34%;animation-delay:.42s"></i><i style="height:80%;animation-delay:.09s"></i><i style="height:58%;animation-delay:.27s"></i><i style="height:92%;animation-delay:.15s"></i><i style="height:40%;animation-delay:.36s"></i><i style="height:70%;animation-delay:.03s"></i><i style="height:48%;animation-delay:.21s"></i><i style="height:84%;animation-delay:.33s"></i><i style="height:56%;animation-delay:.11s"></i><i style="height:76%;animation-delay:.45s"></i><i style="height:36%;animation-delay:.2s"></i><i style="height:64%;animation-delay:.07s"></i><i style="height:90%;animation-delay:.3s"></i><i style="height:46%;animation-delay:.14s"></i><i style="height:68%;animation-delay:.39s"></i><i style="height:54%;animation-delay:.24s"></i><i style="height:82%;animation-delay:.05s"></i><i style="height:42%;animation-delay:.31s"></i></div>
+        <a class="track" href="https://www.beatport.com/track/force/30661546" target="_blank" rel="noopener">
+          <span class="cover"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>
+          <span class="t-meta"><span class="t-title">Force (Remix)</span><br><span class="t-artist">Oziriz · Afro House · 7 nov 2026</span></span>
+          <span class="t-pill">Afro House</span>
+        </a>
+        <a class="track" href="https://www.beatport.com/track/la-place-vide/31071218" target="_blank" rel="noopener">
+          <span class="cover"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>
+          <span class="t-meta"><span class="t-title">La Place Vide (Original Mix)</span><br><span class="t-artist">ZOLAE · Afro House · 7 nov 2026</span></span>
+          <span class="t-pill">Afro House</span>
+        </a>
+        <a class="track" href="https://www.beatport.com/track/elele/31077782" target="_blank" rel="noopener">
+          <span class="cover"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></span>
+          <span class="t-meta"><span class="t-title">E'LELE (Original Mix)</span><br><span class="t-artist">GOLD MESS · Afro House · 7 nov 2026</span></span>
+          <span class="t-pill">Afro House</span>
+        </a>
+        <p class="console-foot"><span><b>5 envíos hoy</b></span><span>9:00 · 12:00 · 15:00 · 18:00 · 21:00</span></p>
+      </aside>
+    </div>
   </section>
 
   <div class="ticker" aria-hidden="true">
-    <span>REPARTO • REGUETÓN • AFROHOUSE • DEMBOW • SALSA • BACHATA • GUARACHA • HOUSE • TECHNO • </span>
-    <span>REPARTO • REGUETÓN • AFROHOUSE • DEMBOW • SALSA • BACHATA • GUARACHA • HOUSE • TECHNO • </span>
+    <div class="ticker-track">
+      <span>REPARTO</span><span class="sep">•</span><span>REGUETÓN</span><span class="sep">•</span><span>AFROHOUSE</span><span class="sep">•</span><span>DEMBOW</span><span class="sep">•</span><span>SALSA</span><span class="sep">•</span><span>BACHATA</span><span class="sep">•</span><span>GUARACHA</span><span class="sep">•</span><span>HOUSE</span><span class="sep">•</span><span>TECHNO</span><span class="sep">•</span>
+      <span>REPARTO</span><span class="sep">•</span><span>REGUETÓN</span><span class="sep">•</span><span>AFROHOUSE</span><span class="sep">•</span><span>DEMBOW</span><span class="sep">•</span><span>SALSA</span><span class="sep">•</span><span>BACHATA</span><span class="sep">•</span><span>GUARACHA</span><span class="sep">•</span><span>HOUSE</span><span class="sep">•</span><span>TECHNO</span><span class="sep">•</span>
+    </div>
   </div>
 
-  <section class="how">
-    <h2>Así funciona</h2>
-    <ol>
-      <li><strong>Te apuntas abajo.</strong> Dices qué géneros quieres y qué cantantes hay que vigilar.</li>
-      <li><strong>Nosotros buscamos.</strong> Todos los días revisamos Spotify, YouTube, Beatport y los canales de los artistas.</li>
-      <li><strong>Te llega el link.</strong> Tema nuevo de tu lista, link directo por correo. Sin spam, solo lo nuevo.</li>
-    </ol>
+  <section class="block how">
+    <div class="wrap reveal">
+      <h2>Así funciona</h2>
+      <p class="section-lede">Tres pasos y no tienes que hacer nada más. El radar trabaja, tú pinchas.</p>
+      <div class="steps">
+        <article class="step">
+          <span class="num">01</span>
+          <span class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg></span>
+          <h3>Te apuntas abajo</h3>
+          <p>Dices qué géneros quieres y qué cantantes hay que vigilar.</p>
+        </article>
+        <article class="step">
+          <span class="num">02</span>
+          <span class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
+          <h3>Nosotros buscamos</h3>
+          <p>Todos los días revisamos Spotify, YouTube, Beatport y los canales de los artistas.</p>
+        </article>
+        <article class="step">
+          <span class="num">03</span>
+          <span class="ic"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></span>
+          <h3>Te llega el link</h3>
+          <p>Tema nuevo de tu lista, link directo por correo. Sin spam, solo lo nuevo.</p>
+        </article>
+      </div>
+    </div>
   </section>
 
-  <section class="price">
-    <h2>Precio</h2>
-    <p class="amount">250 <span>CUP / mes</span></p>
-    <p>Primera semana gratis, pa' que lo pruebes sin pagar nada. Tarifa fija: <strong>250 CUP</strong> al mes. Pago por Transfermóvil.</p>
+  <section class="block price">
+    <div class="wrap reveal">
+      <div class="price-card">
+        <p class="amount">250 <span>CUP / mes</span></p>
+        <span class="free-pill">Primera semana gratis</span>
+        <p>Prueba una semana sin pagar nada. Tarifa fija: <strong>250 CUP</strong> al mes. Pago por Transfermóvil.</p>
+        <ul class="checklist">
+          <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>5 correos al día con lo nuevo, sin repetir</li>
+          <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Todos tus géneros y tus cantantes vigilados</li>
+          <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Link directo de cada tema por correo</li>
+          <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Cancela cuando quieras, sin ataduras</li>
+        </ul>
+        <a class="cta" href="#registro">Crear mi cuenta — primera semana gratis</a>
+        <p class="fine" style="margin-top:16px">Sin ataduras. Cancela cuando quieras. Tus datos solo se usan pa' mandarte los links.</p>
+      </div>
+    </div>
   </section>
 
   <!-- Registro (visible cuando NO hay sesión) -->
-  <section class="form-wrap" id="registro">
-    <h2>Apúntate</h2>
-    <p class="form-intro">Crea tu cuenta en un minuto: tu nombre de DJ, tu correo y qué quieres que vigile. La primera semana es gratis.</p>
-    <button class="submit" type="button" id="openRegisterBtn">Crear mi cuenta — primera semana gratis</button>
-    <p class="fine" style="margin-top:14px">¿Ya tienes cuenta? <button class="linklike" type="button" id="openLoginBtn">Entra aquí</button></p>
-    <p class="fine">Sin ataduras. Cancela cuando quieras. Tus datos solo se usan pa' mandarte los links.</p>
+  <section class="block">
+    <div class="wrap reveal">
+      <div class="form-wrap" id="registro">
+        <h2>Apúntate</h2>
+        <p class="form-intro">Crea tu cuenta en un minuto: tu nombre de DJ, tu correo y qué quieres que vigile. La primera semana es gratis.</p>
+        <button class="submit" type="button" id="openRegisterBtn">Crear mi cuenta — primera semana gratis</button>
+        <p class="fine" style="margin-top:14px">¿Ya tienes cuenta? <button class="linklike" type="button" id="openLoginBtn">Entra aquí</button></p>
+        <p class="fine">Sin ataduras. Cancela cuando quieras. Tus datos solo se usan pa' mandarte los links.</p>
+      </div>
+
+      <!-- Panel del usuario (visible CON sesión) -->
+      <div id="panel" hidden>
+        <div class="panel-box">
+          <h2 id="panelTitle">Mi panel</h2>
+          <p class="kv">Hola, <strong id="panelName">—</strong></p>
+          <p class="kv">Suscripción: <span class="badge free" id="panelPlan">Gratis</span></p>
+          <p class="big-days"><span id="panelDays">—</span> <span id="panelDaysLabel">días te quedan</span></p>
+          <p class="kv">Vence: <strong id="panelExpires">—</strong></p>
+          <p class="kv">Correo: <strong id="panelEmail">—</strong></p>
+          <p class="kv">Teléfono: <strong id="panelPhone">—</strong></p>
+          <p class="kv">Géneros que vigilamos:</p>
+          <p id="panelGenres">—</p>
+          <p class="kv">Cantantes que vigilamos:</p>
+          <p id="panelArtists">—</p>
+          <div class="panel-actions">
+            <button class="submit" type="button" id="renewBtn">Renovar suscripción</button>
+            <button class="ghost" type="button" id="logoutBtn">Cerrar sesión</button>
+          </div>
+          <div class="renew-box" id="renewBox" hidden>
+            <p style="margin-top:0">Renovar son <strong>250 CUP</strong> por Transfermóvil. Paga y toca el botón de abajo para avisarle a Yoel; él activa tu renovación cuando confirme el pago.</p>
+            <button class="submit" type="button" id="paidBtn">Ya pagué, avisar</button>
+            <p class="fine" id="renewMsg" hidden style="text-align:left;margin-top:12px"></p>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 
-  <!-- Panel del usuario (visible CON sesión) -->
-  <section id="panel" hidden>
-    <div class="panel-box">
-      <h2 id="panelTitle">Mi panel 🎧</h2>
-      <p class="kv">Hola, <strong id="panelName">—</strong></p>
-      <p class="kv">Suscripción: <span class="badge free" id="panelPlan">Gratis</span></p>
-      <p class="big-days"><span id="panelDays">—</span> <span id="panelDaysLabel">días te quedan</span></p>
-      <p class="kv">Vence: <strong id="panelExpires">—</strong></p>
-      <p class="kv">Correo: <strong id="panelEmail">—</strong></p>
-      <p class="kv">Teléfono: <strong id="panelPhone">—</strong></p>
-      <p class="kv">Géneros que vigilamos:</p>
-      <p id="panelGenres">—</p>
-      <p class="kv">Cantantes que vigilamos:</p>
-      <p id="panelArtists">—</p>
-      <div class="panel-actions">
-        <button class="submit" type="button" id="renewBtn" style="width:auto;padding:13px 24px">Renovar suscripción</button>
-        <button class="ghost" type="button" id="logoutBtn">Cerrar sesión</button>
-      </div>
-      <div class="renew-box" id="renewBox" hidden>
-        <p style="margin-top:0">Renovar son <strong>250 CUP</strong> por Transfermóvil. Paga y toca el botón de abajo para avisarle a Yoel; él activa tu renovación cuando confirme el pago.</p>
-        <button class="submit" type="button" id="paidBtn" style="width:auto;padding:12px 22px">Ya pagué, avisar</button>
-        <p class="fine" id="renewMsg" hidden style="text-align:left;margin-top:12px"></p>
+  <section class="block">
+    <div class="wrap reveal">
+      <h2 style="text-align:center">Preguntas frecuentes</h2>
+      <p class="section-lede" style="text-align:center;margin-left:auto;margin-right:auto">Lo que todo DJ pregunta antes de apuntarse.</p>
+      <div class="faq-list">
+        <details>
+          <summary>¿Cuántos correos me llegan al día?<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+          <p>Revisamos <strong>5 veces al día (9:00, 12:00, 15:00, 18:00 y 21:00)</strong> y cada revisión te llega por correo con lo nuevo de tus géneros y cantantes, sin repetir. Si en una revisión no hay nada nuevo de tu lista, no te llenamos el correo de ruido.</p>
+        </details>
+        <details>
+          <summary>¿Qué géneros y cantantes vigilan?<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+          <p>Los que tú elijas al apuntarte: <strong>reparto, reguetón, afrohouse, dembow, salsa, bachata, merengue, guaracha, house, techno, hip hop</strong> y más, además de los cantantes que pongas en tu lista.</p>
+        </details>
+        <details>
+          <summary>¿Cómo pago?<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+          <p>Por <strong>Transfermóvil, 250 CUP al mes</strong>. La primera semana es gratis. Cuando se te vence, renuevas desde tu panel y avisas; Yoel activa tu renovación cuando confirma el pago.</p>
+        </details>
+        <details>
+          <summary>¿Puedo cancelar cuando quiera?<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+          <p>Sí. <strong>Sin ataduras:</strong> usas tu semana gratis y si no te cuadra, no renuevas y listo. Tus datos solo se usan pa' mandarte los links.</p>
+        </details>
+        <details>
+          <summary>¿Los links funcionan en Cuba?<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+          <p>Sí: te mandamos el <strong>link directo de cada tema</strong> (Beatport, Spotify, YouTube, Apple Music y más) y lo abres donde tú quieras. Y si te llegó un tema y no lo puedes bajar, tienes la página de <strong>Bajar música</strong>.</p>
+        </details>
       </div>
     </div>
   </section>
 </main>
 
 <footer>
-  <p><a class="textlink" href="descargarmusica/">Bajar música</a> · <a class="textlink" href="legal.html">Privacidad y términos</a></p>
-  <p>Radar DJ — hecho por un DJ, pa' los DJs. Cienfuegos, Cuba.</p>
+  <div class="wrap">
+    <span class="foot-brand"><span class="eqmark" aria-hidden="true" style="display:inline-flex;align-items:flex-end;gap:2.5px;height:18px"><i style="display:block;width:3.5px;height:8px;background:var(--amber);border-radius:2px"></i><i style="display:block;width:3.5px;height:15px;background:var(--amber);border-radius:2px"></i><i style="display:block;width:3.5px;height:11px;background:var(--amber);border-radius:2px"></i><i style="display:block;width:3.5px;height:18px;background:var(--amber);border-radius:2px"></i></span>RADAR&nbsp;DJ</span>
+    <p><a class="textlink" href="descargarmusica/">Bajar música</a> &nbsp;·&nbsp; <a class="textlink" href="legal.html">Privacidad y términos</a></p>
+    <p>Radar DJ — hecho por un DJ, pa' los DJs. Cienfuegos, Cuba.</p>
+  </div>
 </footer>
 
 <!-- Modal de entrar / registrarse -->
@@ -226,5 +613,18 @@
 <script src="vendor/supabase.min.js"></script>
 <script src="config.js"></script>
 <script src="app.js"></script>
+<script>
+// Reveal al hacer scroll, con red de seguridad: si el observador falla,
+// todo se revela igual a los 1,4 s.
+(function () {
+  var els = document.querySelectorAll('.reveal');
+  if (!('IntersectionObserver' in window)) { els.forEach(function (el) { el.classList.add('in'); }); return; }
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: .12 });
+  els.forEach(function (el) { io.observe(el); });
+  setTimeout(function () { els.forEach(function (el) { el.classList.add('in'); }); }, 1400);
+})();
+</script>
 </body>
 </html>
